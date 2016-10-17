@@ -8,7 +8,8 @@ ui <- fluidPage (
                 headerPanel('Multionomial Logistic Regression'),
                 sidebarPanel(
                               fileInput(inputId = "file", label = "Upload *.xlsx file"),
-                              downloadButton('downloadData', 'Download')
+                              downloadButton('downloadData', 'Download'),
+                              h6("To download the input file, please click on Open in Browser")
                             ),
                 mainPanel(
                               tabsetPanel (type = "tabs",
