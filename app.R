@@ -183,7 +183,7 @@ server <- function(input, output)
   
   output$hitrate <- renderText({HitRate()})
   
-  output$downloadData <- downloadHandler(filename = '/mlogit.xlsx', content = function(file){file.copy('mlogit.xlsx', file)})
+  output$downloadData <- downloadHandler(filename = 'mlogit.xlsx', content = function(file){file.copy('mlogit.xlsx', file)})
   
 }
 
