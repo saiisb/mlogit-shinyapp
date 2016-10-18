@@ -2,7 +2,7 @@ library(shiny)
 library(mlogit)
 library(dplyr)
 library(tidyr)
-library(xlsx)
+library(readxl)
 
 ui <- fluidPage (
                 headerPanel('Multionomial Logistic Regression'),
@@ -29,9 +29,9 @@ server <- function(input, output)
   ChoiceData <- reactive({
                         if (is.null(input$file)) { return(NULL) }
                         else{
-                              values$ChoiceData <- (read.xlsx(input$file$datapath, sheetName = "ABB Survey Backup", startRow = 4))
-                              #rownames(Dataset) <- Dataset[,1]
-                              #Dataset <- Dataset[,2:ncol(Dataset)]
+                              file.rename(input$file$datapath,paste(input$file$datapath, ".xlsx", sep=""))
+                              ChoiceData <- read_excel(paste(input$file$datapath,".xlsx",sep=""), sheet = "ABB Survey Backup", skip = 2)
+                              values$ChoiceData <- ChoiceData[-nrow(ChoiceData),]
                               return(values$ChoiceData)
                             }
                       })
@@ -42,7 +42,7 @@ server <- function(input, output)
                              if (is.null(input$file)) { return(NULL) }
                              else{
                                    Electric.Company <- mlogit.data(values$ChoiceData, shape = "long", varying = 4:11, choice = "Choice", alt.var = "Alternatives", chid.var = "Customer")
-                                   values$ml.Electric.Company <- mlogit(Choice ~ Price + Energy.Loss + Maintenance + Warranty + Spare.Parts + Ease.of.Install + Prob.Solver + Quality, Electric.Company, reflevel = "Edison")
+                                   values$ml.Electric.Company <- mlogit(Choice ~ Price + `Energy Loss` + Maintenance + Warranty + `Spare Parts` + `Ease of Install` + `Prob Solver` + Quality, Electric.Company, reflevel = "Edison")
                                    values$coefficients <- summary(values$ml.Electric.Company)$CoefTable
                                    return(values$coefficients)
                                  }
