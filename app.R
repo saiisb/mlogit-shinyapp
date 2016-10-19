@@ -1,4 +1,5 @@
 library(shiny)
+library(xtable)
 library(mlogit)
 library(dplyr)
 library(tidyr)
@@ -31,12 +32,13 @@ server <- function(input, output)
                         else{
                               file.rename(input$file$datapath,paste(input$file$datapath, ".xlsx", sep=""))
                               ChoiceData <- read_excel(paste(input$file$datapath,".xlsx",sep=""), sheet = "ABB Survey Backup", skip = 2)
+                              ChoiceData <- as.data.frame(ChoiceData)
                               values$ChoiceData <- ChoiceData[-nrow(ChoiceData),]
                               return(values$ChoiceData)
                             }
                       })
   
-  output$exceldata <- renderTable( { ChoiceData() }, digits = 0 )
+  output$exceldata <- renderTable( { ChoiceData() }, digits = 0, bordered = TRUE, spacing = "xs" )
   
   Coefficients <- reactive({
                              if (is.null(input$file)) { return(NULL) }
@@ -48,7 +50,7 @@ server <- function(input, output)
                                  }
                           })
   
-  output$coefficients <- renderTable ( {Coefficients()} )
+  output$coefficients <- renderTable ( {Coefficients()}, bordered = TRUE, rownames = TRUE )
   
   EstimatedProbabilities <- reactive({
                                         if (is.null(input$file) | is.null(values$ml.Electric.Company)) { return(NULL) }
@@ -96,7 +98,7 @@ server <- function(input, output)
                                            }
                                     })
                                           
-  output$probabilities <- renderTable ( {EstimatedProbabilities()}, digits = 0 )
+  output$probabilities <- renderTable ( {EstimatedProbabilities()}, digits = 0, bordered = TRUE, spacing = "xs" )
   
   
   ConfusionMatrix <- reactive({
@@ -149,26 +151,27 @@ server <- function(input, output)
                                       }
                                     }
                                     
-                                    
-                                    values$confusionmatrix <- table(predicted.probabilities$PredictedClass,ObservedChoice$ObservedClass)
-                                    
-                                    return(values$confusionmatrix)
+                                    confusion.matrix <- table(predicted.probabilities$PredictedClass,ObservedChoice$ObservedClass)
+                                    confusion.matrix.format <- as.data.frame.matrix(confusion.matrix)
+                                    values$confusionmatrix <- confusion.matrix
+                                    return(confusion.matrix.format)
                                   }
                                 })
   
   
-  output$confusionmatrix <- renderTable ( {ConfusionMatrix()}, digits = 0 )
+  output$confusionmatrix <- renderTable ( {ConfusionMatrix()}, digits = 0, rownames = TRUE )
   
   ConfusionMatrixinPercentage <- reactive({
                                             if (is.null(input$file) | is.null(values$ml.Electric.Company)) { return(NULL) }
                                             else{
                                                   ConfusionMatrix.in.Percentage <- round(prop.table(values$confusionmatrix,2) * 100,2)
+                                                  ConfusionMatrix.in.Percentage <- as.data.frame.matrix(ConfusionMatrix.in.Percentage)
                                                   return(ConfusionMatrix.in.Percentage)
                                                 }
                                          })
             
   
-  output$confusionmatrixinpercentage <- renderTable ( {ConfusionMatrixinPercentage()}, digits = 0 )
+  output$confusionmatrixinpercentage <- renderTable ( {ConfusionMatrixinPercentage()}, digits = 0, rownames = TRUE )
   
   HitRate <- reactive({
                         if (is.null(input$file) | is.null(values$ml.Electric.Company)) { return(NULL) }
